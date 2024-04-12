@@ -61,7 +61,35 @@ export function login() {
 
   return signInWithEmailAndPassword(auth, correo, contraseña);
 }
+export function nuevoMed(Nname, Ncant, Ncodigo, Nclinica) {
+  return new Promise((resolve, reject) => {
+    try {
+      // Obtén una referencia al nodo donde deseas almacenar el nuevo medicamento
+      const medicamentoRef = ref(database, 'medicamentos/' + Nname );
+      const newMed={
+        codigo:Ncodigo,
+        [Nclinica]: {
+          cantidad: Ncant
+        }    
+      }
+      console.log(newMed);
 
+
+      // Almacena los datos del nuevo medicamento
+      set(medicamentoRef, newMed)
+        .then(() => {
+          resolve();
+        })
+        .catch((error) => {
+          console.error("Error al crear el nuevo medicamento:", error);
+          reject(error);
+        });
+    } catch (error) {
+      console.error("Error al crear el nuevo medicamento:", error);
+      reject(error);
+    }
+  });
+}
 export function actualizarBD(medicamento, nuevaCantidad) {
   return new Promise((resolve, reject) => {
     try {
