@@ -62,7 +62,10 @@ Object.keys(medicamentos).forEach((medicamentoKey) => {
   const medicamentoActual = medicamentos[medicamentoKey];
   codigo=medicamentoActual.codigo;
 
-  // Itera sobre cada clínica dentro del medicamento actual
+
+  //EN VEZ DE ITERAR DE CLINICA EN CLINICA, SIMPLEMENTE USA LA CLINICA DEL ADMINISTRADOR PEDIDA ANTES
+
+
   Object.keys(medicamentoActual).forEach((clinicaKey) => {
     // Salta si la clave actual es "nombre" (esto depende de la estructura real de tus datos)
     if (clinicaKey === "nombre") return;
@@ -106,6 +109,7 @@ Object.keys(medicamentos).forEach((medicamentoKey) => {
 }
 
 export function peticionClinica(){
+  alert(auth.currentUser.email)
   let user=auth.currentUser.email; 
   user=user.replace(".","");
   return new Promise((resolve, reject) => {
@@ -120,7 +124,7 @@ export function peticionClinica(){
           if (snapshot.exists()) {
             // Obtén el valor del nodo "clinica"
             const clinica = snapshot.val();
-            console.log(clinica);
+            //console.log(clinica);
             resolve(clinica);
           } else {
             console.log("No hay datos en el nodo 'clinica'");
