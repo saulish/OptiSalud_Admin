@@ -1,7 +1,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
-import { getDatabase, ref, child, get,set } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import { getDatabase, ref, child, get,set,push,update } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 // Configuración de Firebase
 const firebaseConfig = {
@@ -61,35 +61,127 @@ export function login() {
 
   return signInWithEmailAndPassword(auth, correo, contraseña);
 }
-export function nuevoMed(Nname, Ncant, Ncodigo, Nclinica) {
+
+
+function crearClinica(clinica, medicamento) {
+  try {
+    // Crea el objeto para la nueva clínica
+    const medicamentoRef = ref(database, 'medicamentos/' + medicamento.name);
+    
+    // Construir el objeto para agregar
+    const nuevoNodo = {
+      [clinica]: {
+        cantidad: parseInt(medicamento.cant)
+      }
+    };
+
+    
+    console.log(nuevoNodo);
+
+
+    // Agregar el nuevo nodo usando set
+    // Actualizar el nodo del medicamento con el nuevo nodo
+    update(medicamentoRef, nuevoNodo)
+        .then(() => {
+            console.log("Se agregó el nuevo nodo correctamente.");
+        })
+        .catch((error) => {
+            console.error("Error al agregar el nuevo nodo:", error);
+        });
+   
+  } catch (error) {
+    console.error("Error al actualizar la cantidad en la clínica:", error);
+  }
+}
+function existe(medicamento,clinica) {
+
   return new Promise((resolve, reject) => {
     try {
       // Obtén una referencia al nodo donde deseas almacenar el nuevo medicamento
-      const medicamentoRef = ref(database, 'medicamentos/' + Nname );
-      const newMed={
-        codigo:Ncodigo,
-        [Nclinica]: {
-          cantidad: Ncant
-        }    
-      }
-      console.log(newMed);
+      const medicamentoRef = ref(database, 'medicamentos/' + medicamento.name);
 
 
-      // Almacena los datos del nuevo medicamento
-      set(medicamentoRef, newMed)
-        .then(() => {
-          resolve();
-        })
-        .catch((error) => {
-          console.error("Error al crear el nuevo medicamento:", error);
-          reject(error);
-        });
+      return get(medicamentoRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          console.log(snapshot.val()[clinica]);
+          if(snapshot.val()[clinica]!=undefined){
+            resolve(2);
+          }else{
+            resolve(3);
+          }
+          
+        } else {
+          resolve(4);
+        }
+      })
+      
     } catch (error) {
-      console.error("Error al crear el nuevo medicamento:", error);
       reject(error);
     }
   });
 }
+
+export async function nuevo(medicamento, clinica) {
+  let opcion =await existe(medicamento, clinica);
+
+  return new Promise((resolve, reject) => {
+  try {
+    alert(opcion);
+    switch (opcion) {
+      case 2:
+        alert("El medicamento ya existe en la clínica");
+        resolve(false);
+        return false;
+        
+      case 3:
+        alert("El medicamento existe pero no en la clínica");
+        crearClinica(clinica, medicamento);
+        resolve (false); // TRUE PARA CAMBIAR EL NODO
+        return false;
+      case 4:
+        alert("El medicamento no existe, se creara uno nuevo");
+        //console.log( nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, clinica));
+        nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, clinica);
+        //return true;
+        resolve(true);
+    }
+  } catch (error) {
+    console.error("Error al verificar si el medicamento existe:", error);
+    return false;
+  }
+});
+}
+
+
+async function nuevoMed(Nname, Ncant, Ncodigo, Nclinica) {
+  return new Promise((resolve, reject) => {
+    try {
+      // Obtén una referencia al nodo donde deseas almacenar el nuevo medicamento
+      const medicamentoRef = ref(database, 'medicamentos/' + Nname );
+      const newMed = {
+        codigo: Ncodigo,
+        [Nclinica]: {
+          cantidad: Ncant
+        }    
+      };
+
+      // Almacena los datos del nuevo medicamento
+      set(medicamentoRef, newMed)
+        .then(() => {
+          resolve(true); // Se ha creado el nuevo medicamento correctamente
+        })
+        .catch((error) => {
+          console.error("Error al crear el nuevo medicamento:", error);
+          reject(false); // Hubo un error al crear el medicamento
+        });
+    } catch (error) {
+      console.error("Error al crear el nuevo medicamento:", error);
+      reject(false); // Hubo un error al crear el medicamento
+    }
+  });
+}
+
 export function actualizarBD(medicamento, nuevaCantidad) {
   return new Promise((resolve, reject) => {
     try {
@@ -170,7 +262,8 @@ export function pruebaPeticion(clinica) {
               const nombreMedicamento = medicamentoKey;
               const medicamentoActual = medicamentos[medicamentoKey];
               codigo=medicamentoActual.codigo;
-
+              if(medicamentoActual[clinica]!=null) {
+             cantidad=0;
               medicamento = {
                 name: nombreMedicamento,
                 cant: medicamentoActual[clinica].cantidad,
@@ -178,6 +271,8 @@ export function pruebaPeticion(clinica) {
                 codigo: codigo 
               };
               listMeds.push(medicamento);
+              }
+ 
             });
 
             //console.log("Datos obtenidos de 'medicamentos':", listMeds);  

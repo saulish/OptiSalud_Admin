@@ -1,4 +1,4 @@
-import {peticionClinica,xd, nuevoMed} from './conexion4.js';
+import {peticionClinica,xd, nuevo} from './conexion10.js';
 
 let clinica,medicamento;
 (async () => {
@@ -19,7 +19,7 @@ let clinica,medicamento;
     }
   })();
 
-document.getElementById("form").addEventListener("submit", function(event) {
+  document.getElementById("form").addEventListener("submit", async function(event) {
     event.preventDefault(); // Evita que se envíe el formulario de forma predeterminada
 
     // Obtener los valores del formulario
@@ -27,22 +27,23 @@ document.getElementById("form").addEventListener("submit", function(event) {
     const cantidad = document.getElementById("cantidad").value;
     const codigo = document.getElementById("codigo").value;
 
-    medicamento.name=nombre;
-    medicamento.cant=cantidad;
-    medicamento.codigo=codigo;
+    medicamento.name = nombre;
+    medicamento.cant = cantidad;
+    medicamento.codigo = codigo;
 
-
-    if (crearMed(medicamento)) {
-        window.location.href = "principal.html";
-    } else {
+    try {
+        const resultado = await nuevo(medicamento, clinica);
+        if (resultado === true) {
+            window.location.href = "principal.html";
+        } else {
+            //alert("Hubo un error al crear el medicamento. Por favor, inténtalo de nuevo.");
+        }
+    } catch (error) {
+        console.error("Error al crear el medicamento:", error);
         alert("Hubo un error al crear el medicamento. Por favor, inténtalo de nuevo.");
     }
 });
 
 
-function crearMed(medicamento){
-    
-    //nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, medicamento.clinica);
-    return nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, medicamento.clinica);
-    return false;
-}
+
+
