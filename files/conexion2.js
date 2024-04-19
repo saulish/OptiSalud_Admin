@@ -1,7 +1,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
-import { getDatabase, ref, child, get,set,push,update } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import { getDatabase, ref, child, get,set,push,update,remove } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 // Configuración de Firebase
 const firebaseConfig = {
@@ -34,19 +34,15 @@ export function xd(){
      
         .then((snapshot) => {
           if (snapshot.exists()) {
-            console.log(snapshot.val());
             resolve(snapshot.val());
           } else {
-            console.log("1'");
             resolve(0);
           }
         })
         .catch((error) => {
-          console.error("2");
           reject(error);
         });
     } catch (error) {
-      console.error(error);
       reject(error);
     }
   });
@@ -74,13 +70,6 @@ function crearClinica(clinica, medicamento) {
         cantidad: parseInt(medicamento.cant)
       }
     };
-
-    
-    console.log(nuevoNodo);
-
-
-    // Agregar el nuevo nodo usando set
-    // Actualizar el nodo del medicamento con el nuevo nodo
     update(medicamentoRef, nuevoNodo)
         .then(() => {
             console.log("Se agregó el nuevo nodo correctamente.");
@@ -104,7 +93,6 @@ function existe(medicamento,clinica) {
       return get(medicamentoRef)
       .then((snapshot) => {
         if (snapshot.exists()) {
-          console.log(snapshot.val()[clinica]);
           if(snapshot.val()[clinica]!=undefined){
             resolve(2);
           }else{
@@ -121,13 +109,61 @@ function existe(medicamento,clinica) {
     }
   });
 }
+function guardarNombre(nombre, codigo) {
+  try {
+    // Crea la referencia al nodo donde deseas guardar el nombre con el código
+    const medicamentoRef = ref(database, 'codigoMeds');
+
+    // Construir el objeto para agregar
+    const nuevoNodo = {
+      [codigo]: nombre
+    };
+
+    // Actualizar el nodo con el nuevo nombre utilizando el código como clave
+    update(medicamentoRef, nuevoNodo)
+      .then(() => {
+        console.log("Se agregó el nuevo nodo correctamente.");
+      })
+      .catch((error) => {
+        console.error("Error al crear el nuevo medicamento:", error);
+      });
+  } catch (error) {
+    console.error("Error al guardar el nombre:", error);
+  }
+}
+async function verificarCodigo(codigo) {
+  try {
+    // Obtén una referencia al nodo donde deseas almacenar el nuevo medicamento
+    const medicamentoRef = ref(database, 'codigoMeds');
+  
+    const snapshot = await get(medicamentoRef);
+    if (snapshot.exists()) {
+      //console.log(snapshot.val()[codigo]);
+      if (snapshot.val()[codigo] != undefined) {
+        alert("El código ya existe");
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
 
 export async function nuevo(medicamento, clinica) {
+  
+  if(await verificarCodigo(medicamento.codigo)==true){
+    return false;
+  }
+
   let opcion =await existe(medicamento, clinica);
 
   return new Promise((resolve, reject) => {
   try {
-    alert(opcion);
     switch (opcion) {
       case 2:
         alert("El medicamento ya existe en la clínica");
@@ -135,14 +171,15 @@ export async function nuevo(medicamento, clinica) {
         return false;
         
       case 3:
-        alert("El medicamento existe pero no en la clínica");
+        //alert("El medicamento existe pero no en la clínica");
         crearClinica(clinica, medicamento);
         resolve (false); // TRUE PARA CAMBIAR EL NODO
         return false;
       case 4:
-        alert("El medicamento no existe, se creara uno nuevo");
+        //alert("El medicamento no existe, se creara uno nuevo");
         //console.log( nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, clinica));
         nuevoMed(medicamento.name, medicamento.cant, medicamento.codigo, clinica);
+        guardarNombre(medicamento.name,medicamento.codigo);
         //return true;
         resolve(true);
     }
@@ -207,7 +244,6 @@ export function actualizarBD(medicamento, nuevaCantidad) {
 export function peticionClinica(){
 
   let user=auth.currentUser.email; 
-  console.log(user);
   user=user.replace(".","");
   return new Promise((resolve, reject) => {
     try {
@@ -238,7 +274,78 @@ export function peticionClinica(){
     }
   });
 }
+async function eliminarMed(medicamento, clinica,snapshot) {
+  const clinicaUnica = Object.keys(snapshot.val())[0];
+  const medicamentoRef = ref(database, `medicamentos/${medicamento}`);
 
+
+  // Verificar si la única clínica es la misma que se pasa como argumento
+  if (clinicaUnica === clinica) {
+    // Eliminar completamente el nodo del medicamento
+    await remove(medicamentoRef);
+  } else {
+    
+    // Eliminar solo la clínica del medicamento
+    await eliminarClinica(medicamento, clinica);
+  
+  }
+}
+function eliminarNombre(medicamento, codigo) {
+  try {
+    // Crea la referencia al nodo donde deseas eliminar el código
+    const medicamentoRef = ref(database, 'codigoMeds');
+
+    // Construir la ruta completa al nodo del código que deseas eliminar
+    const codigoRef = child(medicamentoRef, codigo);
+
+    // Eliminar el nodo del código
+    remove(codigoRef)
+      .then(() => {
+      })
+      .catch((error) => {
+        console.error("Error al eliminar el código:", error);
+      });
+  } catch (error) {
+    console.error("Error al eliminar el código:", error);
+  }
+}
+
+async function eliminarClinica(medicamento, clinica) {
+
+  try {
+
+    const clinicaRef = ref(database, 'medicamentos/' + medicamento + '/' + clinica);
+
+    await remove(clinicaRef);
+    console.log(`Se eliminó el nodo de la clínica ${clinica} del medicamento ${medicamento}.`);
+  } catch (error) {
+    console.error('Error al eliminar el nodo de la clínica:', error);
+    throw error; // Propagar el error para que pueda ser manejado externamente si es necesario
+  }
+}
+
+export async function eliminarNodoClinica(medicamento, clinica,codigo) {
+  try {
+    const medicamentoRef = ref(database, `medicamentos/${medicamento}`);
+    const snapshot = await get(medicamentoRef);
+    if (snapshot.exists()) {
+      const numClinicas = snapshot['size']-1;
+ 
+      if (numClinicas === 1) {
+        eliminarMed(medicamento, clinica,snapshot);
+        eliminarNombre(medicamento,codigo);//PARECE DUPLICARSE
+
+      } else {
+        eliminarClinica(medicamento,clinica);
+
+      }
+    } else {
+      console.log(`El medicamento ${medicamento} no existe en la base de datos.`);
+    }
+  } catch (error) {
+    console.error("Error al eliminar el medicamento:", error);
+  }
+}
 export function pruebaPeticion(clinica) {
   let medicamento,cantidad,codigo;
   return new Promise((resolve, reject) => {
@@ -292,4 +399,3 @@ export function pruebaPeticion(clinica) {
     }
   });
 }
-

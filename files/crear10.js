@@ -1,4 +1,4 @@
-import {peticionClinica,xd, nuevo} from './conexion10.js';
+import {peticionClinica,xd, nuevo} from './conexion2.js';
 
 let clinica,medicamento;
 (async () => {
@@ -30,6 +30,10 @@ let clinica,medicamento;
     medicamento.name = nombre;
     medicamento.cant = cantidad;
     medicamento.codigo = codigo;
+    if(cantidad<0){
+        alert("No se puede tener una cantidad negativa de medicamentos");
+        return;
+    }
 
     try {
         const resultado = await nuevo(medicamento, clinica);
