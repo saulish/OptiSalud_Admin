@@ -346,6 +346,19 @@ export async function eliminarNodoClinica(medicamento, clinica,codigo) {
     console.error("Error al eliminar el medicamento:", error);
   }
 }
+export function salirSesion(){
+  return new Promise((resolve, reject) => {
+    try {
+      auth.signOut().then(() => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 export function pruebaPeticion(clinica) {
   let medicamento,cantidad,codigo;
   return new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-import {peticionClinica,xd, nuevo} from './conexion2.js';
+import {peticionClinica,xd, nuevo} from './conexion3.js';
 
 let clinica,medicamento;
 (async () => {
@@ -15,7 +15,8 @@ let clinica,medicamento;
 
   
     } catch (error) {
-      console.error("Error al obtener la clinica: ",error);
+        alert("Inicia sesion antes");
+        window.location.href = "index.html";
     }
   })();
 

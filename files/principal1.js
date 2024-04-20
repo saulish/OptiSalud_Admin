@@ -1,4 +1,4 @@
-import { pruebaPeticion, peticionClinica,xd, actualizarBD,eliminarNodoClinica} from './conexion2.js';
+import { pruebaPeticion, peticionClinica,xd, actualizarBD,eliminarNodoClinica,salirSesion} from './conexion3.js';
 function setClinica(clinica){
   let textClinica=document.getElementById("clinica");
   textClinica.textContent=clinica;
@@ -26,6 +26,17 @@ selectorOrden.addEventListener("change", () => {
   imprimirLista(lista.sort((a, b) => a[criterio].localeCompare(b[criterio])));
 });
 const searchInput = document.getElementById("searchInput");
+
+
+export function cerrarSesion() {
+  if(confirm("¿Estás seguro de que deseas cerrar sesión?")){
+    salirSesion();
+    window.location.href = "index.html";
+  }
+}
+
+const logOutLink = document.getElementById("logOut");
+    logOutLink.addEventListener("click", cerrarSesion);
 
 // Agregar un evento de escucha para cada vez que se modifique el valor del input
 searchInput.addEventListener("input", function() {
@@ -108,7 +119,6 @@ function eliminarMedicamento(nombreMedicamento,codigo) {
 }
 
 
-
 (async () => {
   try {
     await xd();
@@ -121,6 +131,9 @@ function eliminarMedicamento(nombreMedicamento,codigo) {
     //imprimirLista(lista)
 
   } catch (error) {
-    console.error("Error al obtener algo:");
+    alert("Inicia sesion antes");
+    window.location.href = "index.html";
+
+    
   }
 })();
