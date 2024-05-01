@@ -1,4 +1,4 @@
-import {peticionClinica,xd, nuevo} from './conexion3.js';
+import {peticionClinica,xd, nuevo} from './conexion4.js';
 
 let clinica,medicamento;
 (async () => {
@@ -8,7 +8,7 @@ let clinica,medicamento;
         clinica=  await peticionClinica();
         medicamento = {
             name:"",
-            cant: 0,
+            cant: "0",
             clinica: clinica,
             codigo: ""
         };

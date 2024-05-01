@@ -67,7 +67,7 @@ function crearClinica(clinica, medicamento) {
     // Construir el objeto para agregar
     const nuevoNodo = {
       [clinica]: {
-        cantidad: parseInt(medicamento.cant)
+        cantidad: medicamento.cant
       }
     };
     update(medicamentoRef, nuevoNodo)
@@ -199,7 +199,7 @@ async function nuevoMed(Nname, Ncant, Ncodigo, Nclinica) {
       const newMed = {
         codigo: Ncodigo,
         [Nclinica]: {
-          cantidad: Ncant
+          cantidad: Ncant // Convertir Ncant a string
         }    
       };
 

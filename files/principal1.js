@@ -1,4 +1,4 @@
-import { pruebaPeticion, peticionClinica,xd, actualizarBD,eliminarNodoClinica,salirSesion} from './conexion3.js';
+import { pruebaPeticion, peticionClinica,xd, actualizarBD,eliminarNodoClinica,salirSesion} from './conexion4.js';
 function setClinica(clinica){
   let textClinica=document.getElementById("clinica");
   textClinica.textContent=clinica;
